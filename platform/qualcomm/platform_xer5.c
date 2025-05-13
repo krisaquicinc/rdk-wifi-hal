@@ -42,6 +42,7 @@
 
 #define QCA_MAX_CMD_SZ 128
 #define MLD_PREFIX "mld"
+#define DFS_5G_CHANNELS "52,56,60,64,100,104,108,112,116,120,124,128,132,136,140,144"
 
 extern INT wifi_setMLDaddr(INT apIndex, CHAR *mldMacAddress);
 extern int qca_getRadiosIndex();
@@ -786,6 +787,15 @@ int platform_set_radio(wifi_radio_index_t index, wifi_radio_operationParam_t *op
     // restarted due to abnormal behaviour.
     if (operationParam->autoChannelEnabled) {
         if(!radio->configured) {
+            if(index == RDK_5G_RADIO)
+            {
+                    snprintf(cmd, sizeof(cmd), "wifitool %s%d block_acs_channel %s", VAP_PREFIX, primary_vap_index, DFS_5G_CHANNELS);
+                    ret = system(cmd);
+                    if(ret == -1) {
+                            wifi_hal_error_print("ACS set command failed %s:%d \n",__func__, __LINE__);
+                    }
+                    memset(cmd, 0, sizeof(cmd));
+            }
             snprintf(cmd, sizeof(cmd), "iwconfig %s%d channel 0",VAP_PREFIX, primary_vap_index);
             ret = system(cmd);
             if(ret == -1) {
